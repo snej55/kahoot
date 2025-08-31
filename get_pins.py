@@ -3,9 +3,12 @@ import requests
 import threading
 import datetime
 
+
+print(f"Started at {datetime.timedelta(seconds=int(time.time()))}")
+
 def scan(start, end):
+    progress = 0
     t = int(time.time()) * 1000
-    print(f"looking from {t} ms between {start} and {end}")
     valid = False
     url = ""
     data = {}
@@ -24,10 +27,13 @@ def scan(start, end):
             # print("error")
         if valid:
             print(f"Pin: {pin}")
+            print(f"{progress * 100 :.1f}%")
+
         valid = False
+        progress = (pin - start) / (end - start)
 
 threads = []
-num_threads = 100
+num_threads = 10
 start = 0
 gran = 1000000 / num_threads
 for _ in range(num_threads):
@@ -35,3 +41,6 @@ for _ in range(num_threads):
     t.start()
     threads.append(t)
     start += gran
+
+for t in threads:
+    t.join()
