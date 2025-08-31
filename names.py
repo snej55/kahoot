@@ -28,7 +28,7 @@ async def main(username, pin):
         print(f"Question started: {packet}")
         question_number: int = packet.game_block_index
         time.sleep(random.random() * 6)
-        await client.send_packet(RespondPacket(client.game_pin, random.randint(1, packet.number_of_choices), question_number))
+        await client.send_packet(RespondPacket(client.game_pin, random.randint(0, packet.number_of_choices), question_number))
 
     async def question_end(packet: QuestionEndPacket):
         print(f"Question ended: {packet}")
@@ -44,6 +44,7 @@ async def main(username, pin):
     await client.join_game(game_pin=pin, username=username)
 
 def join(username, pin):
+    time.sleep(random.random() * 10)
     asyncio.run(main(username, pin))
 
 def getUserName(userData):
@@ -61,7 +62,7 @@ def getUserName(userData):
             ]
         )
     except IndexError:
-        return random.choice(["Paw Patrol Hero", "PIKACHU", "i eat pork", "bananarama", "Butter", "Jonathan", "aah pickles"])
+        return random.choice(["Paw Patrol Hero", "PIKACHU", "i eat pork", "bananarama", "Butter", "Jonathan", "aah pickles", "Mrs. Norris", "Ronald Weasley"])
 
 pin = 000000
 while True:
@@ -90,7 +91,6 @@ threads = []
 
 for word in names:
     t = threading.Thread(target=join, args=(word, pin))
-    time.sleep(0.3)
     t.start()
     threads.append(t)
 

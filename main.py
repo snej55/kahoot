@@ -26,7 +26,7 @@ async def main(username, pin):
         print(f"Question started: {packet}")
         question_number: int = packet.game_block_index
         time.sleep(random.random() * 6)
-        await client.send_packet(RespondPacket(client.game_pin, random.randint(1, packet.number_of_choices), question_number))
+        await client.send_packet(RespondPacket(client.game_pin, random.randint(0, packet.number_of_choices), question_number))
 
     async def question_end(packet: QuestionEndPacket):
         print(f"Question ended: {packet}")
@@ -52,17 +52,22 @@ while True:
     except ValueError:
         print("Please enter a number!")
 
-lyrics = input("Enter your text: ")
-threads = []
+done = False
 
-lyrics = lyrics.split(" ")
-lyrics.reverse()
+while not done:
+    lyrics = input("Enter your text: ")
+    threads = []
 
-for word in lyrics:
-    t = threading.Thread(target=join, args=(word, pin))
-    time.sleep(0.3)
-    t.start()
-    threads.append(t)
+    lyrics = lyrics.split(" ")
+    lyrics.reverse()
+
+    for word in lyrics:
+        t = threading.Thread(target=join, args=(word, pin))
+        time.sleep(0.3)
+        t.start()
+        threads.append(t)
+    
+    done = input("Are you done? (y): ").lower() == "y"
 
 for t in threads:
     t.join()
