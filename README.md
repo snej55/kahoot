@@ -1,4 +1,4 @@
-## Kahoot bot generator
+## Kahoot bot generator & pin scanner
 
 Two python scripts to generate kahoot bots. They can have auto-generated names or be used to display texts in the lobby.
 
@@ -12,6 +12,8 @@ pip install -U KahootPY
 
  - `main.py` asks you to enter a text (song lyrics, etc), and then generates a new bot for each word.
  - `names.py` generates a specified number of bots with random names & usernames.
+ - `get_pins.py` scans kahoot pins in sequence (*very slow*)
+ - `get_pins_async.py` scans kahoot pins asynchronously (*fast*)
 
 ### Running:
 

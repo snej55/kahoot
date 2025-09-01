@@ -4,10 +4,11 @@ import datetime
 import aiohttp
 import concurrent.futures
 
-NUM_SCANNERS = 8 # number of scanners
+NUM_SCANNERS = 1 # number of scanners
 INDIE_PIN_INFO = True # show debug info about pins per search
-STEP_SIZE = 250 # number of pins per search
-SCANNERS_SIZE = 10000 # number of pins per scanner
+STEP_SIZE = 1000 # number of pins per search
+SCANNERS_SIZE = 1000 # number of pins per scanner
+TIME_RANGE = 10 # range of minutes to search for
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -15,30 +16,30 @@ async def fetch(session, url):
 
 async def scan_pin(pin):
     try:
-        async with aiohttp.ClientSession() as session:
-            t = int(time.time()) * 1000
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1000)) as session:
             url = f"https://kahoot.it/reserve/session/{pin}/"
             data = await fetch(session, url)
-            if t - 1000000 < data["startTime"]:
+            t = int(time.time()) * 1000
+            if t - TIME_RANGE * 60000 < data["startTime"]:
                 return (pin, data["startTime"])
     except Exception as e:
+        await asyncio.sleep(1)
+        print(e)
         pass
 
 async def scan_range(start_pin, end_pin):
     print(f"--------------- {start_pin} - {end_pin} ---------------")
-    # create coroutines
-    coroutines = [scan_pin(pin) for pin in range(start_pin, end_pin)]
     # execute coroutines concurrently
-    results = await asyncio.gather(*coroutines)
+    results = await asyncio.gather(*(scan_pin(pin) for pin in range(start_pin, end_pin)))
 
-    pins = [result for result in results if result != None]
-    pins.sort(key=lambda x: -x[1])
 
     if INDIE_PIN_INFO:
+        pins = [result for result in results if result != None]
+        pins.sort(key=lambda x: -x[1])
         if len(pins):
             print(f"Best pin ({start_pin} - {end_pin}): {pins[0][0]}, started {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
 
-    return pins
+    return [result for result in results if result != None]
 
 def scan(start, end):
     pins = []
@@ -46,13 +47,13 @@ def scan(start, end):
     # scan all pins in range
     for start_pin in range(start, end, STEP_SIZE):
         pins.extend(asyncio.run(scan_range(start_pin, start_pin + STEP_SIZE)))
-    pins.sort(key=lambda x: -x[1])
     
     print("---------------------------------")
-    print("FINISHED SCANNING! ({start} - {end})")
+    print(f"FINISHED SCANNING! ({start} - {end})")
     print("---------------------------------")
 
     if INDIE_PIN_INFO:
+        pins.sort(key=lambda x: -x[1])
         print("PINS:")
         for i, pin in enumerate(pins):
             print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
