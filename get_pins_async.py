@@ -4,10 +4,10 @@ import datetime
 import aiohttp
 import concurrent.futures
 
-STEP_SIZE = 500
-NUM_THREADS = 8
-THREADS_SIZE = 10000
-THREAD_PIN_INFO = False
+NUM_SCANNERS = 8 # number of scanners
+INDIE_PIN_INFO = True # show debug info about pins per search
+STEP_SIZE = 250 # number of pins per search
+SCANNERS_SIZE = 10000 # number of pins per scanner
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -34,44 +34,47 @@ async def scan_range(start_pin, end_pin):
     pins = [result for result in results if result != None]
     pins.sort(key=lambda x: -x[1])
 
-    if THREAD_PIN_INFO:
-        print(f"Found {len(pins)} pins")
+    if INDIE_PIN_INFO:
         if len(pins):
-            print(f"Best pin: {pins[0][0]}, started at {str(datetime.timedelta(seconds=int(pins[0][1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
+            print(f"Best pin ({start_pin} - {end_pin}): {pins[0][0]}, started {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
 
     return pins
 
 def scan(start, end):
     pins = []
-    print(f'Started scanning at {datetime.timedelta(seconds=time.time())}')
 
+    # scan all pins in range
     for start_pin in range(start, end, STEP_SIZE):
         pins.extend(asyncio.run(scan_range(start_pin, start_pin + STEP_SIZE)))
     pins.sort(key=lambda x: -x[1])
     
     print("---------------------------------")
-    print("FINISHED SCANNING!")
+    print("FINISHED SCANNING! ({start} - {end})")
     print("---------------------------------")
 
-    if THREAD_PIN_INFO:
+    if INDIE_PIN_INFO:
         print("PINS:")
         for i, pin in enumerate(pins):
             print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
 
     return pins
 
+print(f'Started scanning at {datetime.timedelta(seconds=int(time.time()))}')
 
 pins = []
-with concurrent.futures.ThreadPoolExecutor(max_workers = NUM_THREADS) as e:
+# create new thread for each scanner
+with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_SCANNERS) as e:
     threads = []
-    for i in range(NUM_THREADS):
-        threads.append(e.submit(scan, i * THREADS_SIZE, i * THREADS_SIZE + THREADS_SIZE))
+    for i in range(NUM_SCANNERS):
+        threads.append(e.submit(scan, i * SCANNERS_SIZE, i * SCANNERS_SIZE + SCANNERS_SIZE))
     
+    # get results of each scanner
     for t in concurrent.futures.as_completed(threads):
         pins.extend(t.result())
 
 pins.sort(key=lambda x: -x[1])
-print("PINS:")
+print("##################\n\n\n\n\n\n\n\n\n##################")
+print(f"PINS: 0 - {SCANNERS_SIZE * NUM_SCANNERS}")
 for i, pin in enumerate(pins):
     print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
 
