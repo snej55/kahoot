@@ -4,11 +4,10 @@ import datetime
 import aiohttp
 import concurrent.futures
 
-NUM_SCANNERS = 1 # number of scanners
-INDIE_PIN_INFO = True # show debug info about pins per search
-STEP_SIZE = 1000 # number of pins per search
-SCANNERS_SIZE = 10000 # number of pins per scanner
-TIME_RANGE = 10 # range of minutes to search for
+STEP_SIZE = 500
+NUM_THREADS = 4
+THREADS_SIZE = 10000
+THREAD_PIN_INFO = False
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -16,67 +15,64 @@ async def fetch(session, url):
 
 async def scan_pin(pin):
     try:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1000)) as session:
+        async with aiohttp.ClientSession() as session:
+            t = int(time.time()) * 1000
             url = f"https://kahoot.it/reserve/session/{pin}/"
             data = await fetch(session, url)
-            await asyncio.sleep(3)
-            t = int(time.time()) * 1000
-            if t - TIME_RANGE * 60000 < data["startTime"]:
+            if t - 1000000 < data["startTime"]:
                 return (pin, data["startTime"])
-    except Exception as _:
+    except Exception as e:
         pass
 
 async def scan_range(start_pin, end_pin):
     print(f"--------------- {start_pin} - {end_pin} ---------------")
+    # create coroutines
+    coroutines = [scan_pin(pin) for pin in range(start_pin, end_pin)]
     # execute coroutines concurrently
+    results = await asyncio.gather(*coroutines)
 
-    async with asyncio.TaskGroup() as tg:
-        results = await asyncio.gather(*(tg.create_task(scan_pin(pin)) for pin in range(start_pin, end_pin)))
-    print("--------------------------------------------------------")
+    pins = [result for result in results if result != None]
+    pins.sort(key=lambda x: -x[1])
 
-    if INDIE_PIN_INFO:
-        pins = [result for result in results if result != None]
-        pins.sort(key=lambda x: -x[1])
+    if THREAD_PIN_INFO:
+        print(f"Found {len(pins)} pins")
         if len(pins):
-            print(f"Best pin ({start_pin} - {end_pin}): {pins[0][0]}, started {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
+            print(f"Best pin: {pins[0][0]}, started at {str(datetime.timedelta(seconds=int(pins[0][1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
 
-    return [result for result in results if result != None]
+    return pins
 
 def scan(start, end):
     pins = []
 
-    # scan all pins in range
     for start_pin in range(start, end, STEP_SIZE):
         pins.extend(asyncio.run(scan_range(start_pin, start_pin + STEP_SIZE)))
+    pins.sort(key=lambda x: -x[1])
     
     print("---------------------------------")
-    print(f"FINISHED SCANNING! ({start} - {end})")
+    print("FINISHED SCANNING!")
     print("---------------------------------")
 
-    if INDIE_PIN_INFO:
-        pins.sort(key=lambda x: -x[1])
+    if THREAD_PIN_INFO:
         print("PINS:")
         for i, pin in enumerate(pins):
             print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
 
     return pins
 
-print(f'Started scanning at {datetime.timedelta(seconds=int(time.time()))}')
 
 pins = []
-# create new thread for each scanner
-with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_SCANNERS) as e:
+with concurrent.futures.ThreadPoolExecutor(max_workers = NUM_THREADS) as e:
+    print(f'Started scanning at {datetime.timedelta(seconds=int(time.time()))}')
+
     threads = []
-    for i in range(NUM_SCANNERS):
-        threads.append(e.submit(scan, i * SCANNERS_SIZE, i * SCANNERS_SIZE + SCANNERS_SIZE))
+    for i in range(NUM_THREADS):
+        threads.append(e.submit(scan, i * THREADS_SIZE, i * THREADS_SIZE + THREADS_SIZE))
     
-    # get results of each scanner
     for t in concurrent.futures.as_completed(threads):
         pins.extend(t.result())
 
 pins.sort(key=lambda x: -x[1])
-print("##################\n\n\n\n\n\n\n\n\n##################")
-print(f"PINS: 0 - {SCANNERS_SIZE * NUM_SCANNERS}")
+print("PINS:")
 for i, pin in enumerate(pins):
     print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
 
