@@ -19,19 +19,20 @@ async def scan_pin(pin):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1000)) as session:
             url = f"https://kahoot.it/reserve/session/{pin}/"
             data = await fetch(session, url)
+            await asyncio.sleep(3)
             t = int(time.time()) * 1000
             if t - TIME_RANGE * 60000 < data["startTime"]:
                 return (pin, data["startTime"])
-    except Exception as e:
-        await asyncio.sleep(1)
-        print(e)
+    except Exception as _:
         pass
 
 async def scan_range(start_pin, end_pin):
     print(f"--------------- {start_pin} - {end_pin} ---------------")
     # execute coroutines concurrently
-    results = await asyncio.gather(*(scan_pin(pin) for pin in range(start_pin, end_pin)))
 
+    async with asyncio.TaskGroup() as tg:
+        results = await asyncio.gather(*(tg.create_task(scan_pin(pin)) for pin in range(start_pin, end_pin)))
+    print("--------------------------------------------------------")
 
     if INDIE_PIN_INFO:
         pins = [result for result in results if result != None]
