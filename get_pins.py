@@ -1,8 +1,9 @@
+# This script assumes there are only 1,000,000 possible kahoot pins
+
 import time
 import requests
 import threading
 import datetime
-
 
 print(f"Started at {datetime.timedelta(seconds=int(time.time()))}")
 
