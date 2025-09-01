@@ -7,7 +7,7 @@ import concurrent.futures
 NUM_SCANNERS = 1 # number of scanners
 INDIE_PIN_INFO = True # show debug info about pins per search
 STEP_SIZE = 1000 # number of pins per search
-SCANNERS_SIZE = 1000 # number of pins per scanner
+SCANNERS_SIZE = 10000 # number of pins per scanner
 TIME_RANGE = 10 # range of minutes to search for
 
 async def fetch(session, url):
