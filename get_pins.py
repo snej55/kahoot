@@ -1,3 +1,8 @@
+"""
+NOTE: Don't use this script, use get_pins_async.py or pin_scanner.py instead.
+CAUSE THIS THING IS SLOOOOOW.
+"""
+
 # This script assumes there are only 1,000,000 possible kahoot pins
 
 import time
