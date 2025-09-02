@@ -17,9 +17,9 @@ These scripts heavily rely on the  [KahootPY](https://github.com/vehbiu/kahoot-p
 pip install kahoot
 ```
 
-Other required libraries (for some scripts):
+Or just do:
 ```
-pip install rich requests
+pip install -r requirements.txt
 ```
 
 ### The different scripts:
@@ -42,7 +42,7 @@ cd kahoot
 2. Install the required packages:
 
 ```
-pip install -U KahootPY requests rich
+pip install -r requirements.txt
 ```
 
 3. Run it!
