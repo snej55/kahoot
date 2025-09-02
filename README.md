@@ -4,7 +4,7 @@
 
 Every wanted to join a random kahoot game? These scripts scan for open games by checking each pin. `get_pins.py` scans the pins synchronously (*very slow*), `get_pins_async.py` scans the pins asynchronously (*very fast*), and `pin_scanner.py` uses multiprocessing to scan the pins (*very fast*). See [the different scripts](https://github.com/snej55/kahoot/tree/main?tab=readme-ov-file#the-different-scripts) for more details.
 
-## Bot generator
+## Bot generator & libraries
 Two python scripts to generate kahoot bots. They can have auto-generated names or be used to display texts in the lobby.
 
 These scripts heavily rely on the  [KahootPY](https://github.com/vehbiu/kahoot-py/tree/main) library. You can install it with:
@@ -20,7 +20,7 @@ pip install rich requests
 
 ### The different scripts:
 
- - `main.py` asks you to enter a text (song lyrics, etc), and then generates a new bot for each word.
+ - `text.py` asks you to enter a text (song lyrics, etc), and then generates a new bot for each word.
  - `names.py` generates a specified number of bots with random names & usernames.
  - `get_pins.py` scans kahoot pins in sequence (*very slow*)
  - `get_pins_async.py` scans kahoot pins asynchronously (*fast*). Scans the first 40,000 pins at the moment (10,000 per thread). Gives useful results at the end of the scan.
@@ -44,7 +44,7 @@ pip install -U KahootPY requests rich
 3. Run it!
 
 ```
-python3 main.py
+python3 text.py
 # or
 python3 ...
 ```
