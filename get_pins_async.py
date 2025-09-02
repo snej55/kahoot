@@ -1,3 +1,5 @@
+# You can try and use this, but it's best to just use pin_scanner.py instead (easier to use and just better overrall)
+
 import asyncio
 import time
 import datetime

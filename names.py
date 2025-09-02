@@ -1,3 +1,9 @@
+# This script uses the KahootPy library (https://github.com/vehbiu/kahoot-py/tree/main)
+# to create bots that can enter a kahoot game and answer questions
+#
+# The bots have randomly generated usernames from randomuser.me/api.
+# Use text.py for custom usernames.
+
 import asyncio
 import threading
 import random
@@ -24,6 +30,7 @@ async def main(username, pin):
     async def game_over(packet: GameOverPacket):
         print(f"Game over: {packet}")
 
+    # randomly answer the question
     async def question_start(packet: QuestionStartPacket):
         print(f"Question started: {packet}")
         question_number: int = packet.game_block_index
@@ -43,10 +50,12 @@ async def main(username, pin):
     client.on("question_ready", question_ready)
     await client.join_game(game_pin=pin, username=username)
 
+# add another bot to the game
 def join(username, pin):
     time.sleep(random.random() * 10)
     asyncio.run(main(username, pin))
 
+# generate a username from the api request
 def getUserName(userData):
     print(userData)
     try:
@@ -64,35 +73,38 @@ def getUserName(userData):
     except IndexError:
         return random.choice(["Paw Patrol Hero", "PIKACHU", "i eat pork", "bananarama", "Butter", "Jonathan", "aah pickles", "Mrs. Norris", "Ronald Weasley"])
 
-pin = 000000
-while True:
-    try:
-        pin = int(input("Enter the game pin: "))
-        break
-    except ValueError:
-        print("Please enter a number!")
+if __name__ == "__main__":
+    # enter pin
+    pin = 000000
+    while True:
+        try:
+            pin = int(input("Enter the game pin: "))
+            break
+        except ValueError:
+            print("Please enter a number!")
 
-numBots = 0
-while True:
-    try:
-        numBots = int(input("Enter the number of bots desired: "))
-        if numBots < 0:
-            raise ValueError
-        break
-    except ValueError:
-        print("Please enter a number!")
+    numBots = 0
+    while True:
+        try:
+            numBots = int(input("Enter the number of bots desired: "))
+            if numBots < 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Please enter a number!")
 
-names = []
-for _ in range(numBots):
-    userData = requests.get("https://randomuser.me/api").json()
-    names.append(getUserName(userData))
+    # get usernames
+    names = []
+    for _ in range(numBots):
+        userData = requests.get("https://randomuser.me/api").json()
+        names.append(getUserName(userData))
 
-threads = []
+    # create bots
+    threads = []
+    for word in names:
+        t = threading.Thread(target=join, args=(word, pin))
+        t.start()
+        threads.append(t)
 
-for word in names:
-    t = threading.Thread(target=join, args=(word, pin))
-    t.start()
-    threads.append(t)
-
-for t in threads:
-    t.join()
+    for t in threads:
+        t.join()
