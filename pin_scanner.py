@@ -3,7 +3,21 @@ import time
 import datetime
 import aiohttp
 import concurrent.futures
-from rich.progress import track
+
+from rich import print
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
+from rich.pretty import Pretty
+from rich.table import Table
+from rich.panel import Panel
+from rich.rule import Rule
+from rich.live import Live
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -15,7 +29,6 @@ async def scan_pin(pin):
             await asyncio.sleep(0)
             data = await fetch(session, f"https://kahoot.it/reserve/session/{pin}/")
             if time.time() * 1000 - 600000 < data["startTime"]:
-                print(pin, datetime.timedelta(seconds=int((time.time() * 1000 - data["startTime"]) / 1000)))
                 return (pin, data["startTime"])
     except:
         return None
@@ -48,26 +61,76 @@ def setup():
 
     return start_pin, end_pin
 
+def generate_table(pins, progress, total) -> Table:
+    table = Table(show_header=True, title=f"Game Pins {progress}/{total}", title_style="bold")
+    table.add_column("Game Pin")
+    table.add_column("Duration")
+    table.add_column("Start Time")
+
+    pins.sort(key=lambda x: -x[1])
+    for pin in pins:
+        table.add_row(Pretty(pin[0]), 
+                      str(datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))),
+                      str((datetime.datetime.now() - datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))).strftime("%H:%M:%S")))
+    return table
+
 if __name__ == "__main__":
-    print("##############################")
-    print("# Welcome to the Pin Scanner #")
-    print("##############################\n")
+    panel = Panel("Welcome to the Kahoot Pin Scanner", expand=False)
+    print(panel)
+
+    print(Rule())
+
     print("Please enter the range of pins to scan (min: 0, max: 1000000)\n")
     start_pin, end_pin = setup()
+
+    print(Rule())
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=32) as e:
         futures = {e.submit(scan, pin): pin for pin in range(start_pin, end_pin)}
 
         pins = []
-        for future in track(concurrent.futures.as_completed(futures), description=f'{end_pin - start_pin} pins: scanning...', total=end_pin - start_pin):
-            try:
-                data = future.result()
-                if data is not None:
-                    pins.append(data)
-            except Exception as e:
-                print(e)
+        progress = 0
+        with Live(generate_table(pins, progress, end_pin - start_pin), refresh_per_second=4) as live:
+            for future in concurrent.futures.as_completed(futures):
+                live.update(generate_table(pins, progress, end_pin - start_pin))
+                try:
+                    progress += 1
+                    data = future.result()
+                    if data is not None:
+                        pins.append(data)
+                except Exception as e:
+                    print(e)
 
-    pins.sort(key=lambda x: -x[1])
-    print("PINS:")
-    for i, pin in enumerate(pins):
-        print(f"{i + 1}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
+            live.update(generate_table(pins, end_pin - start_pin, end_pin - start_pin))
+
+        # progress_bar = Progress(
+        #     TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        #     BarColumn(),
+        #     MofNCompleteColumn(),
+        #     TextColumn("•"),
+        #     TimeElapsedColumn(),
+        #     TextColumn("•"),
+        #     TimeRemainingColumn(),
+        # )
+
+        # pins = []
+        # with progress_bar:
+        #     for future in progress_bar.track(concurrent.futures.as_completed(futures), description=f'{end_pin - start_pin} pins: scanning...', total=end_pin - start_pin):
+        #         try:
+        #             data = future.result()
+        #             if data is not None:
+        #                 pins.append(data)
+        #         except Exception as e:
+        #             print(e)
+
+    # pins.sort(key=lambda x: -x[1])
+
+    # table = Table(show_header=True, title="Game Pins", title_style="bold")
+    # table.add_column("Game Pin")
+    # table.add_column("Duration")
+    # table.add_column("Start Time")
+    # for pin in pins:
+    #     table.add_row(Pretty(pin[0]), 
+    #                   str(datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))),
+    #                   str((datetime.datetime.now() - datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))).strftime("%H:%M:%S")))
+    # print(table)
