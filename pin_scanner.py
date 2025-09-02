@@ -5,19 +5,12 @@ import aiohttp
 import concurrent.futures
 
 from rich import print
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
 from rich.pretty import Pretty
 from rich.table import Table
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.live import Live
+from rich import box
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -62,7 +55,7 @@ def setup():
     return start_pin, end_pin
 
 def generate_table(pins, progress, total) -> Table:
-    table = Table(show_header=True, title=f"Game Pins {progress}/{total}", title_style="bold")
+    table = Table(show_header=True, title=f"Game Pins {progress}/{total}", header_style="italic", box=box.HEAVY_EDGE)
     table.add_column("Game Pin")
     table.add_column("Duration")
     table.add_column("Start Time")
@@ -80,7 +73,7 @@ if __name__ == "__main__":
 
     print(Rule())
 
-    print("Please enter the range of pins to scan (min: 0, max: 1000000)\n")
+    print("Please enter the range of pins to scan (min: 0 - max: 1,000,000)\n")
     start_pin, end_pin = setup()
 
     print(Rule())
@@ -90,7 +83,7 @@ if __name__ == "__main__":
 
         pins = []
         progress = 0
-        with Live(generate_table(pins, progress, end_pin - start_pin), refresh_per_second=4) as live:
+        with Live(generate_table(pins, progress, end_pin - start_pin), refresh_per_second=1) as live:
             for future in concurrent.futures.as_completed(futures):
                 live.update(generate_table(pins, progress, end_pin - start_pin))
                 try:
@@ -102,35 +95,3 @@ if __name__ == "__main__":
                     print(e)
 
             live.update(generate_table(pins, end_pin - start_pin, end_pin - start_pin))
-
-        # progress_bar = Progress(
-        #     TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        #     BarColumn(),
-        #     MofNCompleteColumn(),
-        #     TextColumn("•"),
-        #     TimeElapsedColumn(),
-        #     TextColumn("•"),
-        #     TimeRemainingColumn(),
-        # )
-
-        # pins = []
-        # with progress_bar:
-        #     for future in progress_bar.track(concurrent.futures.as_completed(futures), description=f'{end_pin - start_pin} pins: scanning...', total=end_pin - start_pin):
-        #         try:
-        #             data = future.result()
-        #             if data is not None:
-        #                 pins.append(data)
-        #         except Exception as e:
-        #             print(e)
-
-    # pins.sort(key=lambda x: -x[1])
-
-    # table = Table(show_header=True, title="Game Pins", title_style="bold")
-    # table.add_column("Game Pin")
-    # table.add_column("Duration")
-    # table.add_column("Start Time")
-    # for pin in pins:
-    #     table.add_row(Pretty(pin[0]), 
-    #                   str(datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))),
-    #                   str((datetime.datetime.now() - datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))).strftime("%H:%M:%S")))
-    # print(table)
