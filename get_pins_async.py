@@ -31,28 +31,28 @@ async def scan_range(start_pin, end_pin):
     # execute coroutines concurrently
     results = await asyncio.gather(*coroutines)
 
-    pins = [result for result in results if result != None]
-    pins.sort(key=lambda x: -x[1])
 
     if THREAD_PIN_INFO:
+        pins = [result for result in results if result != None]
+        pins.sort(key=lambda x: -x[1])
         print(f"Found {len(pins)} pins")
         if len(pins):
             print(f"Best pin: {pins[0][0]}, started at {str(datetime.timedelta(seconds=int(pins[0][1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pins[0][1] / 1000))} ago")
 
-    return pins
+    return [result for result in results if result != None]
 
 def scan(start, end):
     pins = []
 
     for start_pin in range(start, end, STEP_SIZE):
         pins.extend(asyncio.run(scan_range(start_pin, start_pin + STEP_SIZE)))
-    pins.sort(key=lambda x: -x[1])
     
     print("---------------------------------")
     print("FINISHED SCANNING!")
     print("---------------------------------")
 
     if THREAD_PIN_INFO:
+        pins.sort(key=lambda x: -x[1])
         print("PINS:")
         for i, pin in enumerate(pins):
             print(f"{i}. Pin: {pin[0]}, started at {str(datetime.timedelta(seconds=int(pin[1] / 1000))).split(' ')[-1]}, {datetime.timedelta(seconds=int(time.time() - pin[1] / 1000))} ago")
