@@ -10,7 +10,7 @@ Two python scripts to generate kahoot bots. They can have auto-generated names o
 These scripts heavily rely on the  [KahootPY](https://github.com/vehbiu/kahoot-py/tree/main) library. You can install it with:
 
 ```
-pip install -U KahootPY
+pip install kahoot
 ```
 
 ### The different scripts:
