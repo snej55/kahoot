@@ -13,6 +13,11 @@ These scripts heavily rely on the  [KahootPY](https://github.com/vehbiu/kahoot-p
 pip install kahoot
 ```
 
+Other required libraries (for some scripts):
+```
+pip install rich requests
+```
+
 ### The different scripts:
 
  - `main.py` asks you to enter a text (song lyrics, etc), and then generates a new bot for each word.
@@ -33,7 +38,7 @@ cd kahoot
 2. Install the required packages:
 
 ```
-pip install -U KahootPY requests
+pip install -U KahootPY requests rich
 ```
 
 3. Run it!

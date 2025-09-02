@@ -3,21 +3,24 @@ import time
 import datetime
 import aiohttp
 import concurrent.futures
+from rich.progress import track
 
-NUM_PINS = 10000
+NUM_PINS = 20000
+SEMAPHORE = asyncio.Semaphore(500)
 
 async def fetch(session, url):
     async with session.get(url) as response:
         return await response.json()
-    
+
 async def scan_pin(pin):
     try:
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1024)) as session:
-            await asyncio.sleep(0)
-            data = await fetch(session, f"https://kahoot.it/reserve/session/{pin}/")
-            if time.time() * 1000 - 600000 < data["startTime"]:
-                print(pin, datetime.timedelta(seconds=int((time.time() * 1000 - data["startTime"]) / 1000)))
-                return (pin, data["startTime"])
+            async with SEMAPHORE:
+                await asyncio.sleep(0)
+                data = await fetch(session, f"https://kahoot.it/reserve/session/{pin}/")
+                if time.time() * 1000 - 600000 < data["startTime"]:
+                    print(pin, datetime.timedelta(seconds=int((time.time() * 1000 - data["startTime"]) / 1000)))
+                    return (pin, data["startTime"])
     except:
         return None
 
@@ -28,7 +31,7 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor() as e:
         pins = {e.submit(scan, pin): pin for pin in range(NUM_PINS)}
 
-        for future in concurrent.futures.as_completed(pins):
+        for future in track(concurrent.futures.as_completed(pins), description=f'{NUM_PINS} pins: scanning...', total=NUM_PINS):
             try:
                 data = future.result()
             except Exception as e:
