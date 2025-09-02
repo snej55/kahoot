@@ -3,6 +3,7 @@ import time
 import datetime
 import aiohttp
 import concurrent.futures
+import math
 
 from rich import print
 from rich.pretty import Pretty
@@ -11,6 +12,9 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.live import Live
 from rich import box
+from rich.text import Text
+
+THRESHOLD = 5 # minutes since game started
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -21,7 +25,7 @@ async def scan_pin(pin):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=1024)) as session:
             await asyncio.sleep(0)
             data = await fetch(session, f"https://kahoot.it/reserve/session/{pin}/")
-            if time.time() * 1000 - 600000 < data["startTime"]:
+            if time.time() * 1000 - THRESHOLD * 60000 < data["startTime"]:
                 return (pin, data["startTime"])
     except:
         return None
@@ -55,7 +59,7 @@ def setup():
     return start_pin, end_pin
 
 def generate_table(pins, progress, total) -> Table:
-    table = Table(show_header=True, title=f"Game Pins {progress}/{total}", header_style="italic", box=box.HEAVY_EDGE)
+    table = Table(show_header=True, title=f"Kahoot Games • {progress/total * 100 :.2f}%", header_style="italic", box=box.HEAVY_EDGE)
     table.add_column("Game Pin")
     table.add_column("Duration")
     table.add_column("Start Time")
@@ -68,7 +72,7 @@ def generate_table(pins, progress, total) -> Table:
     return table
 
 if __name__ == "__main__":
-    panel = Panel("Welcome to the Kahoot Pin Scanner", expand=False)
+    panel = Panel(Text("Welcome to the Kahoot Pin Scanner", style="italic"), expand=False)
     print(panel)
 
     print(Rule())
@@ -95,3 +99,6 @@ if __name__ == "__main__":
                     print(e)
 
             live.update(generate_table(pins, end_pin - start_pin, end_pin - start_pin))
+
+        print(f"{math.floor((end_pin - start_pin) / 1000000 * 10000) / 10000}% of  pins were scanned ({(end_pin - start_pin)} / 1,000,000)")
+        print(f"{math.floor(len(pins) / (end_pin - start_pin) * 100 * 10000) / 10000}% of pins scanned where active ({len(pins)} / {end_pin - start_pin})")
