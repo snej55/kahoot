@@ -1,14 +1,11 @@
-#!/usr/bin/bash
 echo "Generating binary for $1"
 
-FILE="$(basename -- $1)"
+FILE="$(basename -- $1 .py)"
 
-name=$1
-IFS='.'
-read -ra path <<< "$name"
-if [ ! -d "bin/${path[0]}" ]; then
-    mkdir bin/${path[0]}
+if [ ! -d "bin/$FILE" ]; then
+    mkdir bin/$FILE
 fi
 
-cd bin/${path[0]}
-pyinstaller "../../$FILE" --onefile --exclude-module=pygame-ce --icon "../../icon/${path[0]}.ico"
+echo "bin/$FILE"
+cd bin/$FILE
+pyinstaller "../../$FILE.py" --onefile --exclude-module=pygame-ce --icon "../../icon/${path[0]}.ico"
