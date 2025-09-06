@@ -3,11 +3,14 @@ if [ ! -d "bin" ]; then
     mkdir bin
 fi
 
-if [ ! -d "dist" ]; then
-    mkdir dist
+arch="$(uname -m)"
+os="$OSTYPE"
+dest=kahoot-$os-$arch
+if [ ! -d "$dest" ]; then
+    mkdir $dest
 else
-    rm -rf dist
-    mkdir dist
+    rm -rf $dest
+    mkdir $dest
 fi
 
 for n in $(seq 1 $#); do
@@ -22,15 +25,11 @@ for n in $(seq 1 $#); do
     pyinstaller "../../$FILE.py" --onefile --exclude-module=pygame-ce --icon "../../icon/${path[0]}.ico"
     cd ../..
 
-    cp bin/$FILE/dist/$FILE dist
+    cp bin/$FILE/dist/$FILE $dest
 
     shift
 done
+rm -rf bin
 
-cp ./LICENSE dist
-cp ./GUIDE.md dist
-
-arch="$(uname -m)"
-os="$OSTYPE"
-tar -zcvf kahoot-$os-$arch.tar.gz dist/
-rm -rf dist bin
+cp ./LICENSE $dest
+cp ./GUIDE.md $dest
