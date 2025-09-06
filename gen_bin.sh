@@ -28,9 +28,9 @@ for n in $(seq 1 $#); do
 done
 
 cp ./LICENSE dist
-cp ./GUIDE dist
+cp ./GUIDE.md dist
 
 arch="$(uname -m)"
 os="$OSTYPE"
-tar -zcvf $os-$arch.tar.gz dist/
+tar -zcvf kahoot-$os-$arch.tar.gz dist/
 rm -rf dist bin
