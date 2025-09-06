@@ -27,3 +27,10 @@ for n in $(seq 1 $#); do
     shift
 done
 
+cp ./LICENSE dist
+cp ./GUIDE dist
+
+arch="$(uname -m)"
+os="$OSTYPE"
+tar -zcvf $os-$arch.tar.gz dist/
+rm -rf dist bin
