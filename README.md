@@ -1,5 +1,7 @@
 # Kahoot bot generator & pin scanner
 
+For more information on how to use the generated binaries, see [GUIDE.md](https://github.com/snej55/kahoot/blob/main/GUIDE.md).
+
 ## Pin scanners
 
 Ever wanted to join a random kahoot game? These scripts scan for open games by checking if pins are active. There are three, but is `pin_scanner.py` is the recommended one. If `pin_scanner.py` is too slow on your system, try `get_pins_async.py` instead.
