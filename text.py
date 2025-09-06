@@ -52,6 +52,11 @@ def join(username, pin):
     asyncio.run(main(username, pin))
 
 if __name__ == "__main__":
+    print("#######################################")
+    print("# Welcome to the Kahoot bot generator #")
+    print("#######################################\n")
+    print("A bot is generated for each word in the text you enter, making the text show up in the lobby.\n")
+
     pin = 000000
     while True:
         try:
