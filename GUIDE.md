@@ -7,7 +7,7 @@ Run `./pin_scanner` to start the pin scanner. Enter the range of the pins to sca
 When trying the pinsat [kahoot.it](https://kahoot.it), make sure to start with pins that have started less than 3 minutes ago. Ideally, use a pin that has started less than 1 minute for the maximum chance of the game still being open.
 
 >[NOTE]
-> A game being open for less than 1 minute is not a guarantee that the pin will work. Finding an open game pin can require some trial and error. If you cannot find any pins, try increasing the search range or scanning a different range.
+> A game being open for less than 1 minute is not a guarantee that the pin will work. Finding an open game pin can require some trial and error. If you cannot find any pins, try increasing the search range or scanning a different range. If you have issues with durations showing as -1 day, ... and such, please check that your system clock is set correctly.
 
 ## 2. Kahoot bots (`names` and `text`)
 

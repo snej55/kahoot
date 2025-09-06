@@ -22,7 +22,7 @@ for n in $(seq 1 $#); do
     fi
 
     cd bin/$FILE
-    pyinstaller "../../$FILE.py" --onefile --exclude-module=pygame-ce --icon "../../icon/${path[0]}.ico"
+    pyinstaller "../../$FILE.py" --onefile --exclude-module=pygame-ce --icon "../../icons/${path[0]}.ico"
     cd ../..
 
     cp bin/$FILE/dist/$FILE $dest
