@@ -61,13 +61,14 @@ def join(username, pin):
 
 # generate a username from the api request
 def getUserName(userData):
-    print(userData)
     try:
         return random.choice(
             [
                 userData["results"][0]["name"]["first"],
                 userData["results"][0]["name"]["first"],
                 userData["results"][0]["name"]["first"] + " " + userData["results"][0]["name"]["last"],
+                userData["results"][0]["name"]["first"] + " " + userData["results"][0]["name"]["last"],
+                userData["results"][0]["name"]["title"] + ". " + userData["results"][0]["name"]["last"],
                 userData["results"][0]["name"]["title"] + ". " + userData["results"][0]["name"]["last"],
                 userData["results"][0]["login"]["username"],
                 userData["results"][0]["login"]["username"],
@@ -75,7 +76,7 @@ def getUserName(userData):
             ]
         )
     except IndexError:
-        return random.choice(["Paw Patrol Hero", "PIKACHU", "i eat pork", "bananarama", "Butter", "Jonathan", "aah pickles", "Mrs. Norris", "Ronald Weasley"])
+        return random.choice(["Paw Patrol Hero", "PIKACHU", "i eat pork", "bananarama", "Butter", "Jonathan", "aah pickles", "Mrs. Norris", "Ronald Weasley", "Anita Bath", "Mishmel Lee"])
 
 if __name__ == "__main__":
     print("#######################################")
@@ -107,6 +108,7 @@ if __name__ == "__main__":
     for _ in range(numBots):
         userData = requests.get("https://randomuser.me/api").json()
         names.append(getUserName(userData))
+        print(f"{len(names)}. {names[-1]}")
 
     # create bots
     threads = []
