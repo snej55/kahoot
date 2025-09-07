@@ -2,4 +2,4 @@
 /dist/
 # *.tar.gz
 *.zip
-*.tar.gz
+# *.tar.gz
